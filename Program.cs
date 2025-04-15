@@ -6,6 +6,9 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<MebToplantiTakipContext>();
 builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<MeetingService>();
+builder.Services.AddScoped<AttendeeService>();
+builder.Services.AddScoped<LocationService>();
+
 
 builder.Services.AddControllers();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi

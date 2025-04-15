@@ -44,18 +44,19 @@ namespace MebToplantiTakip.Services
             return await context.Users.FindAsync(id);
         }
 
-        public async Task<UserDto?> GetUserbyDeviceId(string deviceId)
+        public async Task<User> GetUserbyDeviceId(string deviceId)
         {
             var user = await context.Users.FirstOrDefaultAsync(x => x.DeviceId == deviceId);
             if (user != null)
             {
-                return new UserDto
-                {
-                    DeviceId = user.DeviceId,
-                    UserName = user.UserName,
-                    InstitutionName = user.InstitutionName,
-                    LastLoginDate = user.LastLoginDate
-                };
+                return user;
+                //return new UserDto
+                //{
+                //    DeviceId = user.DeviceId,
+                //    UserName = user.UserName,
+                //    InstitutionName = user.InstitutionName,
+                //    LastLoginDate = user.LastLoginDate
+                //};
             }
             else
             {

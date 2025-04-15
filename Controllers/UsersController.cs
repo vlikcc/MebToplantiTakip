@@ -35,12 +35,12 @@ namespace MebToplantiTakip.Controllers
             {
                 return NoContent(); // Return 204 if no user is found
             }
-            UserDto userDto = new UserDto();
-            userDto.DeviceId = user.DeviceId;
-            userDto.UserName = user.UserName;
-            userDto.InstitutionName = user.InstitutionName;
+            //UserDto userDto = new UserDto();
+            //userDto.DeviceId = user.DeviceId;
+            //userDto.UserName = user.UserName;
+            //userDto.InstitutionName = user.InstitutionName;
             
-            return Ok(userDto);
+            return Ok(user);
         }
 
         [HttpPost("AddUser")]
