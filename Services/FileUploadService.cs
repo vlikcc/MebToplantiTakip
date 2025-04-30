@@ -1,20 +1,55 @@
-﻿namespace MebToplantiTakip.Services
+﻿using MebToplantiTakip.DbContexts;
+using MebToplantiTakip.Dtos;
+using MebToplantiTakip.Entities;
+using Microsoft.EntityFrameworkCore;
+
+namespace MebToplantiTakip.Services
 {
-    public class FileUploadService
+    public class FileUploadService(MebToplantiTakipContext context)
     {
         private readonly string UploadPath = "wwwroot/Uploads";
 
-        public async Task<string> UploadFile (IFormFile file)
-        {
-            if (file == null || file.Length == 0) return null;
-            var filePath = Path.Combine(UploadPath, file.FileName);
-            Directory.CreateDirectory(UploadPath);
 
-            using (var stream = new FileStream(filePath, FileMode.Create))
+        public async Task<List<MeetingDocument>> UploadFiles(List<IFormFile> files, int meetingId)
+        {
+            var meetingDocuments = new List<MeetingDocument>();
+
+            if (files == null || !files.Any())
+                throw new ArgumentException("Geçersiz dosya listesi.");
+
+            try
             {
-                await file.CopyToAsync(stream);
+                Directory.CreateDirectory(UploadPath);
+
+                foreach (var file in files)
+                {
+                    var filePath = Path.Combine(UploadPath, file.FileName);
+
+                    using (var stream = new FileStream(filePath, FileMode.Create))
+                    {
+                        await file.CopyToAsync(stream);
+                    }
+
+                    var meetingDocument = new MeetingDocument
+                    {
+                        FileName = file.FileName,
+                        FilePath = filePath,
+                        MeetingId = meetingId
+                    };
+
+                    context.MeetingDocuments.Add(meetingDocument);
+                    meetingDocuments.Add(meetingDocument);
+                }
+
+                await context.SaveChangesAsync();
             }
-            return filePath;
+            catch (Exception ex)
+            {
+                throw new Exception($"Dosya yüklenirken bir hata oluştu: {ex.Message}");
+            }
+
+            return meetingDocuments;
         }
+
     }
 }

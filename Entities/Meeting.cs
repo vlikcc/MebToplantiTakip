@@ -9,7 +9,7 @@
         public string Allday { get; set; }
         public string Color { get; set; }
         public Location Location { get; set; }
-        public List<MeetingDocument> MeetingDocs { get; set; }
+        public List<MeetingDocument> Documents { get; set; }
 
 
     }

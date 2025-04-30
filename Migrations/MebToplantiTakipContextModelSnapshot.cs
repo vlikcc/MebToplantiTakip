@@ -102,6 +102,32 @@ namespace MebToplantiTakip.Migrations
                     b.ToTable("Meetings");
                 });
 
+            modelBuilder.Entity("MebToplantiTakip.Entities.MeetingDocument", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("FileName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("FilePath")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("MeetingId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("MeetingId");
+
+                    b.ToTable("MeetingDocuments");
+                });
+
             modelBuilder.Entity("MebToplantiTakip.Entities.User", b =>
                 {
                     b.Property<int>("UserId")
@@ -139,6 +165,20 @@ namespace MebToplantiTakip.Migrations
                         .IsRequired();
 
                     b.Navigation("Location");
+                });
+
+            modelBuilder.Entity("MebToplantiTakip.Entities.MeetingDocument", b =>
+                {
+                    b.HasOne("MebToplantiTakip.Entities.Meeting", null)
+                        .WithMany("Documents")
+                        .HasForeignKey("MeetingId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("MebToplantiTakip.Entities.Meeting", b =>
+                {
+                    b.Navigation("Documents");
                 });
 #pragma warning restore 612, 618
         }

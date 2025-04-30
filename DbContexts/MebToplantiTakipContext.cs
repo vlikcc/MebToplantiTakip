@@ -18,5 +18,6 @@ namespace MebToplantiTakip.DbContexts
         public DbSet<Meeting> Meetings { get; set; }
         public DbSet<Location> Locations { get; set; }
         public DbSet<Attendee> Attendees { get; set; }
+        public DbSet<MeetingDocument> MeetingDocuments { get; set; }
     }
 }

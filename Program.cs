@@ -9,6 +9,7 @@ builder.Services.AddScoped<MeetingService>();
 builder.Services.AddScoped<AttendeeService>();
 builder.Services.AddScoped<LocationService>();
 builder.Services.AddScoped<QrCodeService>();
+builder.Services.AddScoped<FileUploadService>();
 
 
 builder.Services.AddControllers();
