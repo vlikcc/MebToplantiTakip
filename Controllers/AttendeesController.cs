@@ -2,6 +2,7 @@ using MebToplantiTakip.Dtos;
 using MebToplantiTakip.Entities;
 using MebToplantiTakip.Services;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 
 namespace MebToplantiTakip.Controllers
 {
