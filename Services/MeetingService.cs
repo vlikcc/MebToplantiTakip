@@ -13,7 +13,7 @@ namespace MebToplantiTakip.Services
     using MebToplantiTakip.Entities;
  
 
-    public class MeetingService(MebToplantiTakipContext context, FileUploadService fileUploadService)
+    public class MeetingService(MebToplantiTakipContext context, FileService fileUploadService)
 
     {
         

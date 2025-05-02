@@ -3,6 +3,7 @@ using MebToplantiTakip.Entities;
 using MebToplantiTakip.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace MebToplantiTakip.Controllers
 {
@@ -11,7 +12,7 @@ namespace MebToplantiTakip.Controllers
 
     [Route("api/[controller]")]
     [ApiController]
-    public class MeetingsController ( MeetingService meetingService, FileUploadService fileUploadService): ControllerBase
+    public class MeetingsController ( MeetingService meetingService, FileService fileService): ControllerBase
     {
        
 
@@ -43,12 +44,31 @@ namespace MebToplantiTakip.Controllers
 
             try
             {
-                var uploadedFiles = await fileUploadService.UploadFiles(files, meetingId);
+                var uploadedFiles = await fileService.UploadFiles(files, meetingId);
                 return Ok(uploadedFiles);
             }
             catch (Exception ex)
             {
                 return StatusCode(StatusCodes.Status500InternalServerError, $"Dosya yüklenirken hata oluştu: {ex.Message}");
+            }
+        }
+
+        [HttpGet("download-documents/{meetingId}")]
+        public async Task<IActionResult> DownloadDocuments(int meetingId)
+        {
+            try
+            {
+                var fileBytes = await fileService.DownloadFilesByMeetingId(meetingId);
+                var meetingName = await meetingService.GetMeetingById(meetingId);
+                return File(fileBytes, "application/zip", $"{meetingName.Title}_Documents.zip");
+            }
+            catch (FileNotFoundException)
+            {
+                return NotFound("Bu toplantıya ait doküman bulunamadı.");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, $"Dosya indirilirken hata oluştu: {ex.Message}");
             }
         }
 
@@ -71,6 +91,13 @@ namespace MebToplantiTakip.Controllers
         {
             var meetings = await meetingService.GetAllMeetings();
             return Ok(meetings);
+        }
+
+        [HttpGet("{meetingId}")]
+        public async Task<IActionResult> GetMeetingById(int meetingId)
+        {
+            var meeting = await meetingService.GetMeetingById(meetingId);
+            return meeting != null ? Ok(meeting) : NotFound();
         }
     }
 }

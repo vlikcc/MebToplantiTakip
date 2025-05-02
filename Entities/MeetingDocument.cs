@@ -6,5 +6,6 @@
         public int MeetingId { get; set; }
         public  string FileName { get; set; }
         public string FilePath { get; set; }
+        public string DownloadUrl => $"http://localhost:5000/api/meetings/download-document/{Id}";
     }
 }
