@@ -3,6 +3,18 @@ using MebToplantiTakip.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// CORS politikasını ekleyin
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowReactApp", policy =>
+    {
+        policy.WithOrigins("http://localhost:3000")
+              .AllowAnyHeader()
+              .AllowAnyMethod()
+              .AllowCredentials();
+    });
+});
+
 builder.Services.AddDbContext<MebToplantiTakipContext>();
 builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<MeetingService>();
@@ -28,7 +40,8 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
 }
 
-
+// CORS middleware'ini etkinleştirin (UseRouting'den önce olmalı)
+app.UseCors("AllowReactApp");
 
 app.MapControllers();
 

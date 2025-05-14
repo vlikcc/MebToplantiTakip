@@ -13,10 +13,17 @@ namespace MebToplantiTakip.Services
     using MebToplantiTakip.Entities;
  
 
-    public class MeetingService(MebToplantiTakipContext context, FileService fileUploadService)
-
+    public class MeetingService
     {
-        
+        private readonly MebToplantiTakipContext _context;
+        private readonly FileService _fileService;
+
+        public MeetingService(MebToplantiTakipContext context, FileService fileService)
+        {
+            _context = context;
+            _fileService = fileService;
+        }
+
         public async Task<Meeting> CreateMeeting(MeetingDto meeting,List<IFormFile> files)
         {
             if (meeting == null)
@@ -38,17 +45,17 @@ namespace MebToplantiTakip.Services
                 Documents = new List<MeetingDocument>()
             };
 
-            await context.Meetings.AddAsync(createdMeeting);
-            await context.SaveChangesAsync();
+            await _context.Meetings.AddAsync(createdMeeting);
+            await _context.SaveChangesAsync();
 
           
             if (files != null && files.Any())
             {
-                var uploadedDocuments = await fileUploadService.UploadFiles(files, createdMeeting.MeetingId);
+                var uploadedDocuments = await _fileService.UploadFiles(files, createdMeeting.MeetingId);
                 createdMeeting.Documents.AddRange(uploadedDocuments);
 
-                context.Meetings.Update(createdMeeting);
-                await context.SaveChangesAsync();
+                _context.Meetings.Update(createdMeeting);
+                await _context.SaveChangesAsync();
             }
 
             return createdMeeting;
@@ -61,44 +68,50 @@ namespace MebToplantiTakip.Services
             if (meeting == null || meeting.MeetingId <= 0)
                 return null;
 
-            var existingMeeting = await context.Meetings.FindAsync(meeting.MeetingId);
+            var existingMeeting = await _context.Meetings.FindAsync(meeting.MeetingId);
             if (existingMeeting == null)
                 return null;
 
-            context.Entry(existingMeeting).State = EntityState.Detached; // Veriyi izlemeyi kapat
-            context.Meetings.Update(meeting);
-            await context.SaveChangesAsync();
+            _context.Entry(existingMeeting).State = EntityState.Detached; // Veriyi izlemeyi kapat
+            _context.Meetings.Update(meeting);
+            await _context.SaveChangesAsync();
 
             return meeting;
         }
 
         public async Task<bool> DeleteMeeting(int meetingId)
         {
-            var meeting = await context.Meetings.Include(m => m.Documents)
+            var meeting = await _context.Meetings.Include(m => m.Documents)
                                                  .FirstOrDefaultAsync(m => m.MeetingId == meetingId);
 
             if (meeting == null)
                 return false;
 
            
-            context.MeetingDocuments.RemoveRange(meeting.Documents);
-            context.Meetings.Remove(meeting);
-            await context.SaveChangesAsync();
+            _context.MeetingDocuments.RemoveRange(meeting.Documents);
+            _context.Meetings.Remove(meeting);
+            await _context.SaveChangesAsync();
 
             return true;
         }
 
         public async Task<Meeting?> GetMeetingById(int meetingId)
         {
-            return await context.Meetings.Include(m => m.Documents)
+            return await _context.Meetings.Include(m => m.Documents)
                                           .FirstOrDefaultAsync(m => m.MeetingId == meetingId);
         }
 
         public async Task<List<Meeting>> GetAllMeetings()
         {
-            return await context.Meetings.AsNoTracking()
+            return await _context.Meetings.AsNoTracking()
                                           .Include(m => m.Documents)
                                           .ToListAsync();
+        }
+
+        // Dokümana ID'sine göre erişim
+        public async Task<MeetingDocument> GetDocumentById(int id)
+        {
+            return await _context.MeetingDocuments.FindAsync(id);
         }
     }
 }

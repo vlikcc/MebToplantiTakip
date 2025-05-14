@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
-using MebToplantiTakip.Dtos;
 using MebToplantiTakip.Services;
-
+using MebToplantiTakip.Entities;
 namespace MebToplantiTakip.Controllers
 {
     [ApiController]
@@ -16,14 +15,14 @@ namespace MebToplantiTakip.Controllers
         }
 
         [HttpPost("GenerateQRCode")]
-        public async Task<IActionResult> GenerateQRCode([FromBody] MeetingDto meetingDto)
+        public async Task<IActionResult> GenerateQRCode([FromBody] Meeting meeting)
         {
-            if (meetingDto == null)
+            if (meeting == null)
             {
                 return BadRequest("Meeting data is required.");
             }
 
-            var qrCodeImage = await qrCodeService.GenerateQrCode(meetingDto);
+            var qrCodeImage = await qrCodeService.GenerateQrCode(meeting);
             if (qrCodeImage == null)
             {
                 return NotFound("QR code could not be generated.");

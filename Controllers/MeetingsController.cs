@@ -72,6 +72,50 @@ namespace MebToplantiTakip.Controllers
             }
         }
 
+        [HttpGet("download-document/{id}")]
+        public async Task<IActionResult> DownloadDocument(int id)
+        {
+            try
+            {
+                var document = await meetingService.GetDocumentById(id);
+                if (document == null)
+                    return NotFound("Doküman bulunamadı.");
+
+                if (!System.IO.File.Exists(document.FilePath))
+                    return NotFound("Dosya bulunamadı.");
+
+                var fileBytes = await System.IO.File.ReadAllBytesAsync(document.FilePath);
+                var contentType = GetContentType(document.FileName);
+                
+                return File(fileBytes, contentType, document.FileName);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, $"Dosya indirilirken hata oluştu: {ex.Message}");
+            }
+        }
+        
+        private string GetContentType(string fileName)
+        {
+            var extension = Path.GetExtension(fileName).ToLowerInvariant();
+            return extension switch
+            {
+                ".pdf" => "application/pdf",
+                ".doc" => "application/msword",
+                ".docx" => "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                ".xls" => "application/vnd.ms-excel",
+                ".xlsx" => "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                ".ppt" => "application/vnd.ms-powerpoint",
+                ".pptx" => "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+                ".jpg" => "image/jpeg",
+                ".jpeg" => "image/jpeg",
+                ".png" => "image/png",
+                ".gif" => "image/gif",
+                ".txt" => "text/plain",
+                _ => "application/octet-stream"
+            };
+        }
+
         [HttpDelete("{meetingId}")]
         public async Task<IActionResult> DeleteMeeting(int meetingId)
         {
