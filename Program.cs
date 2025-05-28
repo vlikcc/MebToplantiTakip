@@ -14,7 +14,11 @@ builder.Services.AddCors(options =>
     });
 });
 
-builder.Services.AddDbContext<MebToplantiTakipContext>();
+builder.Services.AddDbContext<MebToplantiTakipContext>(options =>
+{
+    options.EnableSensitiveDataLogging();
+    options.EnableDetailedErrors();
+});
 builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<MeetingService>();
 builder.Services.AddScoped<AttendeeService>();

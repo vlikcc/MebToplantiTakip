@@ -2,6 +2,7 @@
 using MebToplantiTakip.Dtos;
 using MebToplantiTakip.Entities;
 using Microsoft.EntityFrameworkCore;
+using System.Transactions;
 
 namespace MebToplantiTakip.Services
 {
@@ -19,8 +20,10 @@ namespace MebToplantiTakip.Services
             {
                 throw new Exception("Toplantı Bulunamadı");
             }
-            var existingAttendee = await context.Attendees.AsNoTracking().
-               FirstOrDefaultAsync(a => a.UserId == attendee.UserId && a.MeetingId == attendee.MeetingId);
+            using var scope = new System.Transactions.TransactionScope(System.Transactions.TransactionScopeAsyncFlowOption.Enabled);
+            var existingAttendee = await context.Attendees
+                .AsNoTracking()
+                .FirstOrDefaultAsync(a => a.UserId == attendee.UserId && a.MeetingId == attendee.MeetingId);
             if (existingAttendee != null)
             {
                 throw new Exception("Kullanıcının bu toplantıda kaydı var.");
@@ -32,6 +35,7 @@ namespace MebToplantiTakip.Services
             };  
             await context.Attendees.AddAsync(createdAtendee);
             await context.SaveChangesAsync();
+            scope.Complete();
             return createdAtendee;
         }
       
