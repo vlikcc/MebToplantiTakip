@@ -1,7 +1,7 @@
 // API URL'leri ve diğer yapılandırma ayarları
 
 // Canlı ortam URL'si (HTTPS yerine HTTP kullanıyoruz çünkü sunucu HTTPS desteklemiyor olabilir)
-export const API_BASE_URL = 'http://velikececi-001-site1.jtempurl.com/api';
+export const API_BASE_URL = 'https://mebtoplantitakip-813955083168.europe-west1.run.app/api';
 
 // Geliştirme ortamı URL'si
 // export const API_BASE_URL = 'http://localhost:5010/api';
