@@ -9,12 +9,12 @@ namespace MebToplantiTakip.Services
     {
         public async Task<Attendee> AddAttendee (AttendeeDto attendee)
         {
-            var user = userService.GetUserById (attendee.UserId);
+            var user = await userService.GetUserById(attendee.UserId);
             if (user == null) 
             {
                 throw new Exception("Kullanıcı Bulunamadı");
             }
-             var meeting = meetingService.GetMeetingById(attendee.MeetingId);
+            var meeting = await meetingService.GetMeetingById(attendee.MeetingId);
             if (meeting == null)
             {
                 throw new Exception("Toplantı Bulunamadı");

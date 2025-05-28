@@ -13,8 +13,15 @@ namespace MebToplantiTakip.Controllers
         [HttpPost("AddAttendee")]
         public async Task<IActionResult> AddAttendee(AttendeeDto attendee)
         {
-            var result = await attendeeService.AddAttendee(attendee);
-            return Ok(result);
+            try
+            {
+                var result = await attendeeService.AddAttendee(attendee);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
         }
 
         [HttpGet("UserMeetings/{userId}")]
