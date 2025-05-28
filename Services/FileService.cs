@@ -18,10 +18,32 @@ namespace MebToplantiTakip.Services
             _context = context;
             _environment = environment;
             _uploadPath = Path.Combine(_environment.WebRootPath, "Uploads");
-            // Başlangıçta dizinin varlığını kontrol et ve oluştur
+            
+            // Uploads dizininin varlığını kontrol et ve oluştur
             if (!Directory.Exists(_uploadPath))
             {
                 Directory.CreateDirectory(_uploadPath);
+            }
+            
+            // Temp dizininin varlığını kontrol et ve oluştur
+            var tempPath = Path.Combine(_environment.WebRootPath, "temp");
+            if (!Directory.Exists(tempPath))
+            {
+                Directory.CreateDirectory(tempPath);
+            }
+            
+            // Dizinlere yazma izni ver
+            try
+            {
+                var uploadsInfo = new DirectoryInfo(_uploadPath);
+                var tempInfo = new DirectoryInfo(tempPath);
+                
+                uploadsInfo.Attributes &= ~FileAttributes.ReadOnly;
+                tempInfo.Attributes &= ~FileAttributes.ReadOnly;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Dizin izinleri ayarlanırken hata oluştu: {ex.Message}");
             }
         }
 
@@ -81,41 +103,62 @@ namespace MebToplantiTakip.Services
             if (documents == null || !documents.Any())
                 throw new FileNotFoundException("Bu toplantıya ait dosya bulunamadı.");
 
-            // ZIP dosyası için geçici bir yol oluştur
-            var zipDirectory = Path.Combine(_environment.WebRootPath, "temp");
-            if (!Directory.Exists(zipDirectory))
+            // ZIP dosyası için geçici dizin yolunu oluştur
+            var tempDirectory = Path.Combine(_environment.WebRootPath, "temp");
+            
+            // Temp dizininin varlığını tekrar kontrol et
+            if (!Directory.Exists(tempDirectory))
             {
-                Directory.CreateDirectory(zipDirectory);
+                try
+                {
+                    Directory.CreateDirectory(tempDirectory);
+                    var tempInfo = new DirectoryInfo(tempDirectory);
+                    tempInfo.Attributes &= ~FileAttributes.ReadOnly;
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception($"Geçici dizin oluşturulurken hata oluştu: {ex.Message}");
+                }
             }
 
             // ZIP dosyası oluştur
             string zipFileName = $"Meeting_{meetingId}_Documents_{DateTime.Now:yyyyMMddHHmmss}.zip";
-            string zipFilePath = Path.Combine(zipDirectory, zipFileName);
+            string zipFilePath = Path.Combine(tempDirectory, zipFileName);
             
-            using (var zipArchive = ZipFile.Open(zipFilePath, ZipArchiveMode.Create))
+            try
             {
-                foreach (var doc in documents)
+                using (var zipArchive = ZipFile.Open(zipFilePath, ZipArchiveMode.Create))
                 {
-                    if (File.Exists(doc.FilePath))
+                    foreach (var doc in documents)
                     {
-                        zipArchive.CreateEntryFromFile(doc.FilePath, doc.FileName);
+                        if (File.Exists(doc.FilePath))
+                        {
+                            zipArchive.CreateEntryFromFile(doc.FilePath, doc.FileName);
+                        }
                     }
                 }
-            }
 
-            var zipBytes = await File.ReadAllBytesAsync(zipFilePath);
-            
-            // Zip dosyasını temizle
-            try 
-            {
-                File.Delete(zipFilePath);
-            }
-            catch
-            {
-                // Silme hatası kritik değil, devam et
-            }
+                var zipBytes = await File.ReadAllBytesAsync(zipFilePath);
+                
+                // Zip dosyasını temizle
+                try 
+                {
+                    if (File.Exists(zipFilePath))
+                    {
+                        File.Delete(zipFilePath);
+                    }
+                }
+                catch
+                {
+                    // Silme hatası kritik değil, devam et
+                }
 
-            return zipBytes;
+                return zipBytes;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"ZIP dosyası oluşturulurken hata oluştu: {ex.Message}");
+            }
         }
     }
 }

@@ -2,6 +2,15 @@
 
 # This stage is used when running from VS in fast mode (Default for Debug configuration)
 FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS base
+USER root
+WORKDIR /app
+
+# Gerekli dizinleri oluştur ve izinleri ayarla
+RUN mkdir -p /app/wwwroot/Uploads \
+    && mkdir -p /app/wwwroot/temp \
+    && chown -R $APP_UID:$APP_UID /app/wwwroot \
+    && chmod -R 755 /app/wwwroot
+
 USER $APP_UID
 WORKDIR /app
 EXPOSE 8080
@@ -27,4 +36,13 @@ RUN dotnet publish "./MebToplantiTakip.csproj" -c $BUILD_CONFIGURATION -o /app/p
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
+
+# Final aşamasında da dizinlerin varlığından ve izinlerinden emin ol
+USER root
+RUN mkdir -p /app/wwwroot/Uploads \
+    && mkdir -p /app/wwwroot/temp \
+    && chown -R $APP_UID:$APP_UID /app/wwwroot \
+    && chmod -R 755 /app/wwwroot
+
+USER $APP_UID
 ENTRYPOINT ["dotnet", "MebToplantiTakip.dll"]
