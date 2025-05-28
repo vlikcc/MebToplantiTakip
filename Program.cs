@@ -24,20 +24,35 @@ builder.Services.AddScoped<FileService>();
 
 builder.Services.AddControllers();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-builder.Services.AddOpenApi();
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+
+// Swagger yapılandırması
+builder.Services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
+    {
+        Title = "MEB Toplantı Takip API",
+        Version = "v1",
+        Description = "MEB Toplantı Takip Sistemi API Dokümantasyonu",
+        Contact = new Microsoft.OpenApi.Models.OpenApiContact
+        {
+            Name = "Veli Keçeci",
+            Email = "velikececi@gmail.com"
+        }
+    });
+});
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
+// Swagger UI'ı her ortamda aktif et
+app.UseSwagger();
+app.UseSwaggerUI(c =>
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
-    app.MapOpenApi();
-}
-else
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "MEB Toplantı Takip API V1");
+    c.RoutePrefix = "swagger"; // URL'de /swagger olarak erişilebilir
+});
+
+if (!app.Environment.IsDevelopment())
 {
     // Production ortamında HTTPS yönlendirmesi
     app.UseHsts();
