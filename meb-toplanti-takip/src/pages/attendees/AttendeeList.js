@@ -15,6 +15,8 @@ import {
   TextField,
   InputAdornment,
   CircularProgress,
+  Alert,
+  Snackbar,
 } from '@mui/material';
 import {
   Add as AddIcon,
@@ -23,36 +25,65 @@ import {
   Event as EventIcon,
 } from '@mui/icons-material';
 import { Link } from 'react-router-dom';
+import attendeeService from '../../services/attendeeService';
+import meetingService from '../../services/meetingService';
+import userService from '../../services/userService';
 
 const AttendeeList = () => {
   const [attendees, setAttendees] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
-    // API'den katılımcıları çek
-    const fetchAttendees = async () => {
+    const fetchData = async () => {
       try {
-        // API henüz bağlanmadığı için örnek veri kullanıyoruz
-        const mockData = [
-          { attendeeId: 1, userId: 1, meetingId: 1, userName: 'Ahmet Yılmaz', meetingTitle: 'Yıllık Değerlendirme Toplantısı', attendanceDate: '2023-05-15' },
-          { attendeeId: 2, userId: 2, meetingId: 1, userName: 'Ayşe Demir', meetingTitle: 'Yıllık Değerlendirme Toplantısı', attendanceDate: '2023-05-15' },
-          { attendeeId: 3, userId: 3, meetingId: 2, userName: 'Mehmet Kaya', meetingTitle: 'Proje Planlama Toplantısı', attendanceDate: '2023-06-20' },
-          { attendeeId: 4, userId: 1, meetingId: 3, userName: 'Ahmet Yılmaz', meetingTitle: 'Bütçe Toplantısı', attendanceDate: '2023-07-10' },
-          { attendeeId: 5, userId: 4, meetingId: 3, userName: 'Zeynep Şahin', meetingTitle: 'Bütçe Toplantısı', attendanceDate: '2023-07-10' },
-        ];
+        setLoading(true);
+        setError(null);
+
+        // Tüm toplantıları getir
+        const meetings = await meetingService.getAllMeetings();
         
-        setAttendees(mockData);
-        setLoading(false);
+        if (meetings && meetings.length > 0) {
+          // Her toplantı için katılımcıları getir
+          const attendeesList = [];
+          
+          for (const meeting of meetings) {
+            try {
+              const meetingAttendees = await attendeeService.getMeetingAttendees(meeting.meetingId);
+              
+              // Her katılımcı için detaylı bilgi oluştur
+              const attendeesWithDetails = meetingAttendees.map(attendee => ({
+                attendeeId: `${meeting.meetingId}-${attendee.userId}`, // Benzersiz ID oluştur
+                userId: attendee.userId,
+                meetingId: meeting.meetingId,
+                userName: attendee.userName,
+                institutionName: attendee.institutionName,
+                meetingTitle: meeting.title,
+                attendanceDate: meeting.startDate,
+              }));
+              
+              attendeesList.push(...attendeesWithDetails);
+            } catch (error) {
+              console.error(`${meeting.meetingId} ID'li toplantının katılımcıları alınırken hata:`, error);
+            }
+          }
+          
+          setAttendees(attendeesList);
+        } else {
+          setAttendees([]);
+        }
       } catch (error) {
-        console.error('Katılımcılar yüklenirken hata oluştu:', error);
+        console.error('Veriler yüklenirken hata oluştu:', error);
+        setError('Veriler yüklenirken bir hata oluştu. Lütfen daha sonra tekrar deneyin.');
+      } finally {
         setLoading(false);
       }
     };
 
-    fetchAttendees();
+    fetchData();
   }, []);
 
   const handleChangePage = (event, newPage) => {
@@ -69,10 +100,15 @@ const AttendeeList = () => {
     setPage(0);
   };
 
+  const handleCloseError = () => {
+    setError(null);
+  };
+
   // Arama filtrelemesi
   const filteredAttendees = attendees.filter(attendee =>
-    attendee.userName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    attendee.meetingTitle.toLowerCase().includes(searchTerm.toLowerCase())
+    (attendee.userName?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+    (attendee.meetingTitle?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+    (attendee.institutionName?.toLowerCase() || '').includes(searchTerm.toLowerCase())
   );
 
   // Sayfalama
@@ -92,7 +128,7 @@ const AttendeeList = () => {
           <TextField
             fullWidth
             variant="outlined"
-            placeholder="Katılımcı veya toplantı ara..."
+            placeholder="Katılımcı, kurum veya toplantı ara..."
             value={searchTerm}
             onChange={handleSearchChange}
             InputProps={{
@@ -110,6 +146,7 @@ const AttendeeList = () => {
             <TableHead>
               <TableRow>
                 <TableCell>Katılımcı</TableCell>
+                <TableCell>Kurum</TableCell>
                 <TableCell>Toplantı</TableCell>
                 <TableCell>Katılım Tarihi</TableCell>
                 <TableCell>İşlemler</TableCell>
@@ -118,14 +155,18 @@ const AttendeeList = () => {
             <TableBody>
               {loading ? (
                 <TableRow>
-                  <TableCell colSpan={4} align="center">
+                  <TableCell colSpan={5} align="center">
                     <CircularProgress />
                   </TableCell>
                 </TableRow>
               ) : paginatedAttendees.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={4} align="center">
-                    Katılımcı bulunamadı
+                  <TableCell colSpan={5} align="center">
+                    {error ? (
+                      <Typography color="error">{error}</Typography>
+                    ) : (
+                      'Katılımcı bulunamadı'
+                    )}
                   </TableCell>
                 </TableRow>
               ) : (
@@ -135,19 +176,22 @@ const AttendeeList = () => {
                       <Box display="flex" alignItems="center">
                         <PersonIcon sx={{ mr: 1, color: 'primary.main' }} />
                         <Link to={`/users/${attendee.userId}/meetings`} style={{ textDecoration: 'none', color: 'inherit' }}>
-                          {attendee.userName}
+                          {attendee.userName || 'İsimsiz Katılımcı'}
                         </Link>
                       </Box>
                     </TableCell>
+                    <TableCell>{attendee.institutionName || '-'}</TableCell>
                     <TableCell>
                       <Box display="flex" alignItems="center">
                         <EventIcon sx={{ mr: 1, color: 'secondary.main' }} />
                         <Link to={`/meetings/${attendee.meetingId}`} style={{ textDecoration: 'none', color: 'inherit' }}>
-                          {attendee.meetingTitle}
+                          {attendee.meetingTitle || 'İsimsiz Toplantı'}
                         </Link>
                       </Box>
                     </TableCell>
-                    <TableCell>{attendee.attendanceDate}</TableCell>
+                    <TableCell>
+                      {attendee.attendanceDate ? new Date(attendee.attendanceDate).toLocaleDateString('tr-TR') : '-'}
+                    </TableCell>
                     <TableCell>
                       <Button
                         variant="outlined"
@@ -179,6 +223,17 @@ const AttendeeList = () => {
           }
         />
       </Paper>
+
+      <Snackbar
+        open={!!error}
+        autoHideDuration={6000}
+        onClose={handleCloseError}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert onClose={handleCloseError} severity="error" sx={{ width: '100%' }}>
+          {error}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 };

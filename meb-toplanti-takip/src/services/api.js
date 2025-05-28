@@ -15,30 +15,21 @@ const api = axios.create({
     'Content-Type': 'application/json',
     'Accept': 'application/json, text/plain, */*'
   },
-  timeout: 30000, // 30 saniye zaman aşımı süresi
+  timeout: 30000,
   timeoutErrorMessage: 'Sunucu yanıt vermedi. Lütfen internet bağlantınızı kontrol edin veya daha sonra tekrar deneyin.',
-  withCredentials: false, // CORS için
+  withCredentials: false,
   crossDomain: true
 });
 
-// İstek interceptor'ı - her istekte token eklemek için
+// İstek interceptor'ı
 api.interceptors.request.use(
   (config) => {
-    // Her istekte güncel URL kullan
     config.baseURL = getApiUrl();
     
-    console.log(`İstek yapılıyor: ${config.method.toUpperCase()} ${config.baseURL}${config.url}`);
+    if (APP_CONFIG.useDebugMode) {
+      console.log(`İstek yapılıyor: ${config.method.toUpperCase()} ${config.baseURL}${config.url}`);
+    }
     
-    // CORS sorunlarını aşmak için
-    config.headers['Access-Control-Allow-Origin'] = '*';
-    config.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, OPTIONS';
-    config.headers['Access-Control-Allow-Headers'] = 'Origin, Content-Type, Accept, Authorization, X-Request-With';
-    
-    // Geliştirme aşamasında kimlik doğrulamayı atla
-    // const token = localStorage.getItem('token');
-    // if (token) {
-    //   config.headers['Authorization'] = `Bearer ${token}`;
-    // }
     return config;
   },
   (error) => {
@@ -47,115 +38,53 @@ api.interceptors.request.use(
   }
 );
 
-// Yanıt interceptor'ı - hata işleme için
+// Yanıt interceptor'ı
 api.interceptors.response.use(
   (response) => {
-    console.log(`Yanıt alındı: ${response.status} ${response.config.method.toUpperCase()} ${response.config.url}`);
-    return response;
-  },
-  (error) => {
-    // Hata detaylarını logla
-    console.error('API Hatası:', {
-      url: error.config?.url,
-      method: error.config?.method,
-      status: error.response?.status,
-      statusText: error.response?.statusText,
-      message: error.message,
-      data: error.response?.data
-    });
-
-    // Network hatası ise örnek veri döndür
-    if (error.code === 'ERR_NETWORK' || error.code === 'ECONNABORTED') {
-      console.log('Ağ hatası tespit edildi');
-      
-      // URL'ye göre farklı örnek veriler döndür
-      if (error.config?.url.includes('GetMeetings')) {
-        return Promise.resolve({
-          data: [
-            { 
-              meetingId: 5, 
-              title: "deneme",
-              startDate: "string",
-              endDate: "string",
-              allday: "string",
-              color: "string",
-              location: null,
-              documents: [
-                {
-                  id: 7,
-                  meetingId: 5,
-                  fileName: "main.js",
-                  filePath: "wwwroot/Uploads\\main.js",
-                  downloadUrl: "http://velikececi-001-site1.jtempurl.com/api/meetings/download-document/7"
-                }
-              ]
-            },
-            {
-              meetingId: 6,
-              title: "string",
-              startDate: "string",
-              endDate: "string",
-              allday: "string",
-              color: "string",
-              location: null,
-              documents: [
-                {
-                  id: 8,
-                  meetingId: 6,
-                  fileName: "main.js",
-                  filePath: "wwwroot/Uploads\\main.js",
-                  downloadUrl: "http://velikececi-001-site1.jtempurl.com/api/meetings/download-document/8"
-                }
-              ]
-            }
-          ]
-        });
+    if (APP_CONFIG.useDebugMode) {
+      console.log(`Yanıt alındı: ${response.status} ${response.config.method.toUpperCase()} ${response.config.url}`);
+      if (response.data) {
+        console.log('API yanıtı:', response.data);
       }
     }
-
-    // 401 Unauthorized hatası durumunda kullanıcıyı login sayfasına yönlendir
-    if (error.response && error.response.status === 401) {
-      localStorage.removeItem('token');
-      window.location.href = '/login';
+    return response;
+  },
+  async (error) => {
+    if (error.response) {
+      // Sunucudan yanıt alındı ama hata kodu döndü
+      console.error(`API Hatası: ${error.response.status} ${error.response.statusText}`, error.response.data);
+      
+      if (error.response.status === 401) {
+        localStorage.removeItem('token');
+        window.location.href = '/login';
+        return Promise.reject(new Error('Oturum süresi doldu. Lütfen tekrar giriş yapın.'));
+      }
+      
+      return Promise.reject(error.response.data || error.response.statusText);
+    } else if (error.request) {
+      // İstek yapıldı ama yanıt alınamadı
+      console.error('Sunucuya ulaşılamıyor:', error.request);
+      return Promise.reject(new Error('Sunucuya ulaşılamıyor. Lütfen internet bağlantınızı kontrol edin.'));
+    } else {
+      // İstek oluşturulurken hata oluştu
+      console.error('İstek hatası:', error.message);
+      return Promise.reject(new Error('Bir hata oluştu. Lütfen daha sonra tekrar deneyin.'));
     }
-
-    return Promise.reject(error);
   }
 );
 
-// API için proxy kullanan alternatif yöntem
-export const directFetch = async (endpoint, retryCount = 0) => {
-  const MAX_RETRIES = 3;
-  const currentUrl = getApiUrl();
-  
+export default api;
+
+// Doğrudan fetch API kullanımı için yardımcı fonksiyon
+export const directFetch = async (endpoint) => {
   try {
-    console.log(`Fetch isteği yapılıyor: ${currentUrl}${endpoint}`);
-    
-    const response = await fetch(`${currentUrl}${endpoint}`, {
-      method: 'GET',
-      headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*'
-      },
-      mode: 'cors'
-    });
-    
+    const response = await fetch(`${getApiUrl()}${endpoint}`);
     if (!response.ok) {
-      throw new Error(`HTTP error! Status: ${response.status}`);
+      throw new Error(`HTTP error! status: ${response.status}`);
     }
-    
     return await response.json();
   } catch (error) {
-    console.error('Doğrudan fetch hatası:', error);
-    
-    // Yeniden deneme
-    if (retryCount < MAX_RETRIES) {
-      console.log(`Fetch hatası nedeniyle yeniden deneniyor: ${retryCount + 1}/${MAX_RETRIES}`);
-      return directFetch(endpoint, retryCount + 1);
-    }
-    
-    // Maksimum deneme sayısına ulaştıktan sonra hata fırlat
+    console.error(`Fetch hatası (${endpoint}):`, error);
     throw error;
   }
 };
@@ -165,5 +94,3 @@ export const setApiBaseUrl = (url) => {
   apiBaseUrl = url;
   console.log(`API base URL manuel olarak ayarlandı: ${url}`);
 };
-
-export default api;
