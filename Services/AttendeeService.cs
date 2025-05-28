@@ -48,7 +48,7 @@ namespace MebToplantiTakip.Services
         {
             return await context.Attendees.AsNoTracking()
                 .Where(a => a.UserId == userId)
-                .Join(context.Meetings,
+                .Join(context.Meetings.Include(m => m.Documents),
                     attendee => attendee.MeetingId,
                     meeting => meeting.MeetingId,
                     (attendee, meeting) => meeting)
