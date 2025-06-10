@@ -15,8 +15,8 @@ namespace MebToplantiTakip.Controllers
         {
             try
             {
-                var result = await attendeeService.AddAttendee(attendee);
-                return Ok(result);
+            var result = await attendeeService.AddAttendee(attendee);
+            return Ok(result);
             }
             catch (Exception ex)
             {

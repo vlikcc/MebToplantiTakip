@@ -1,9 +1,14 @@
-﻿using System.IO.Compression;
+﻿using System;
+using System.IO;
+using System.IO.Compression;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using System.Linq;
 using MebToplantiTakip.DbContexts;
-using MebToplantiTakip.Dtos;
 using MebToplantiTakip.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 
 namespace MebToplantiTakip.Services
 {
@@ -11,12 +16,14 @@ namespace MebToplantiTakip.Services
     {
         private readonly MebToplantiTakipContext _context;
         private readonly IWebHostEnvironment _environment;
+        private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly string _uploadPath;
 
-        public FileService(MebToplantiTakipContext context, IWebHostEnvironment environment)
+        public FileService(MebToplantiTakipContext context, IWebHostEnvironment environment, IHttpContextAccessor httpContextAccessor)
         {
             _context = context;
             _environment = environment;
+            _httpContextAccessor = httpContextAccessor;
             _uploadPath = Path.Combine(_environment.WebRootPath, "Uploads");
             
             // Uploads dizininin varlığını kontrol et ve oluştur
@@ -45,6 +52,13 @@ namespace MebToplantiTakip.Services
             {
                 throw new Exception($"Dizin izinleri ayarlanırken hata oluştu: {ex.Message}");
             }
+        }
+
+        private string GenerateDownloadUrl(int documentId)
+        {
+            var request = _httpContextAccessor.HttpContext.Request;
+            var baseUrl = $"{request.Scheme}://{request.Host}";
+            return $"{baseUrl}/api/meetings/download-document/{documentId}";
         }
 
         public async Task<List<MeetingDocument>> UploadFiles(List<IFormFile> files, int meetingId)
@@ -81,6 +95,11 @@ namespace MebToplantiTakip.Services
                     };
 
                     _context.MeetingDocuments.Add(meetingDocument);
+                    await _context.SaveChangesAsync(); // Önce kaydet ki ID oluşsun
+
+                    meetingDocument.DownloadUrl = GenerateDownloadUrl(meetingDocument.Id);
+                    _context.MeetingDocuments.Update(meetingDocument);
+                    
                     meetingDocuments.Add(meetingDocument);
                 }
 
@@ -110,7 +129,7 @@ namespace MebToplantiTakip.Services
             if (!Directory.Exists(tempDirectory))
             {
                 try
-                {
+            {
                     Directory.CreateDirectory(tempDirectory);
                     var tempInfo = new DirectoryInfo(tempDirectory);
                     tempInfo.Attributes &= ~FileAttributes.ReadOnly;
@@ -131,29 +150,29 @@ namespace MebToplantiTakip.Services
                 {
                     foreach (var doc in documents)
                     {
-                        if (File.Exists(doc.FilePath))
-                        {
-                            zipArchive.CreateEntryFromFile(doc.FilePath, doc.FileName);
-                        }
+                    if (File.Exists(doc.FilePath))
+                    {
+                        zipArchive.CreateEntryFromFile(doc.FilePath, doc.FileName);
                     }
                 }
+            }
 
-                var zipBytes = await File.ReadAllBytesAsync(zipFilePath);
-                
-                // Zip dosyasını temizle
-                try 
+            var zipBytes = await File.ReadAllBytesAsync(zipFilePath);
+            
+            // Zip dosyasını temizle
+            try 
                 {
                     if (File.Exists(zipFilePath))
-                    {
-                        File.Delete(zipFilePath);
+            {
+                File.Delete(zipFilePath);
                     }
-                }
-                catch
-                {
-                    // Silme hatası kritik değil, devam et
-                }
+            }
+            catch
+            {
+                // Silme hatası kritik değil, devam et
+            }
 
-                return zipBytes;
+            return zipBytes;
             }
             catch (Exception ex)
             {

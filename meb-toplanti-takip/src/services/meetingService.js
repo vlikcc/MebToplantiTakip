@@ -42,47 +42,7 @@ const meetingService = {
         return data;
       } catch (fetchError) {
         console.error('Tüm istekler başarısız:', fetchError);
-        
-        // Sabit hardcoded veri döndür
-        console.log('Sabit veri döndürülüyor...');
-        return [
-          { 
-            meetingId: 5, 
-            title: "deneme",
-            startDate: "string",
-            endDate: "string",
-            allday: "string",
-            color: "string",
-            location: null,
-            documents: [
-              {
-                id: 7,
-                meetingId: 5,
-                fileName: "main.js",
-                filePath: "wwwroot/Uploads\\main.js",
-                downloadUrl: "http://velikececi-001-site1.jtempurl.com/api/meetings/download-document/7"
-              }
-            ]
-          },
-          {
-            meetingId: 6,
-            title: "string",
-            startDate: "string",
-            endDate: "string",
-            allday: "string",
-            color: "string",
-            location: null,
-            documents: [
-              {
-                id: 8,
-                meetingId: 6,
-                fileName: "main.js",
-                filePath: "wwwroot/Uploads\\main.js",
-                downloadUrl: "http://velikececi-001-site1.jtempurl.com/api/meetings/download-document/8"
-              }
-            ]
-          }
-        ];
+        throw new Error('Toplantı verileri alınamadı. Lütfen daha sonra tekrar deneyin.');
       }
     }
   },

@@ -25,6 +25,9 @@ builder.Services.AddScoped<AttendeeService>();
 builder.Services.AddScoped<LocationService>();
 builder.Services.AddScoped<QrCodeService>();
 builder.Services.AddScoped<FileService>();
+builder.Services.AddScoped<MeetingService>();
+builder.Services.AddScoped<AttendeeService>();
+builder.Services.AddHttpContextAccessor();
 
 builder.Services.AddControllers();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi

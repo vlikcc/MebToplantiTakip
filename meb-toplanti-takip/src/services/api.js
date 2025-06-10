@@ -27,7 +27,7 @@ api.interceptors.request.use(
     config.baseURL = getApiUrl();
     
     if (APP_CONFIG.useDebugMode) {
-      console.log(`İstek yapılıyor: ${config.method.toUpperCase()} ${config.baseURL}${config.url}`);
+    console.log(`İstek yapılıyor: ${config.method.toUpperCase()} ${config.baseURL}${config.url}`);
     }
     
     return config;
@@ -42,7 +42,7 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => {
     if (APP_CONFIG.useDebugMode) {
-      console.log(`Yanıt alındı: ${response.status} ${response.config.method.toUpperCase()} ${response.config.url}`);
+    console.log(`Yanıt alındı: ${response.status} ${response.config.method.toUpperCase()} ${response.config.url}`);
       if (response.data) {
         console.log('API yanıtı:', response.data);
       }
