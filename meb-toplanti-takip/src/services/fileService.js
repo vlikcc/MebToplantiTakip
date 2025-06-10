@@ -1,6 +1,7 @@
 import axios from 'axios';
+import { API_BASE_URL } from '../config';
 
-const API_URL = process.env.REACT_APP_API_URL || 'http://velikececi-001-site1.jtempurl.com/api';
+const API_URL = API_BASE_URL;
 
 const fileService = {
   // Tek bir dokümanı indir
