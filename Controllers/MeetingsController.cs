@@ -79,10 +79,10 @@ namespace MebToplantiTakip.Controllers
             {
                 var document = await meetingService.GetDocumentById(id);
                 if (document == null)
-                    return NotFound("Doküman bulunamadı.");
+                    return NotFound($"ID {id} ile doküman veritabanında bulunamadı.");
 
                 if (!System.IO.File.Exists(document.FilePath))
-                    return NotFound("Dosya bulunamadı.");
+                    return NotFound($"Doküman veritabanında bulundu ancak dosya bulunamadı. Dosya yolu: {document.FilePath}");
 
                 var fileBytes = await System.IO.File.ReadAllBytesAsync(document.FilePath);
                 var contentType = GetContentType(document.FileName);
