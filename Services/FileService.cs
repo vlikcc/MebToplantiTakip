@@ -91,22 +91,45 @@ namespace MebToplantiTakip.Services
                     {
                         FileName = file.FileName,
                         FilePath = filePath,
-                        MeetingId = meetingId
+                        MeetingId = meetingId,
+                        DownloadUrl = "" // Boş string olarak başlat
                     };
 
                     _context.MeetingDocuments.Add(meetingDocument);
-                    await _context.SaveChangesAsync(); // Önce kaydet ki ID oluşsun
-
-                    meetingDocument.DownloadUrl = GenerateDownloadUrl(meetingDocument.Id);
-                    _context.MeetingDocuments.Update(meetingDocument);
-                    
                     meetingDocuments.Add(meetingDocument);
                 }
 
+                // Toplu kaydet
+                await _context.SaveChangesAsync();
+
+                // Şimdi ID'ler oluştuğuna göre DownloadUrl'leri güncelle
+                foreach (var document in meetingDocuments)
+                {
+                    document.DownloadUrl = GenerateDownloadUrl(document.Id);
+                    _context.MeetingDocuments.Update(document);
+                }
+
+                // Son güncelleme
                 await _context.SaveChangesAsync();
             }
             catch (Exception ex)
             {
+                // Hata durumunda yüklenen dosyaları temizle
+                foreach (var document in meetingDocuments)
+                {
+                    try
+                    {
+                        if (File.Exists(document.FilePath))
+                        {
+                            File.Delete(document.FilePath);
+                        }
+                    }
+                    catch
+                    {
+                        // Dosya silme hatası kritik değil
+                    }
+                }
+                
                 throw new Exception($"Dosya yüklenirken bir hata oluştu: {ex.Message}");
             }
 
@@ -125,11 +148,11 @@ namespace MebToplantiTakip.Services
             // ZIP dosyası için geçici dizin yolunu oluştur
             var tempDirectory = Path.Combine(_environment.WebRootPath, "temp");
             
-            // Temp dizininin varlığını tekrar kontrol et
+                        // Temp dizininin varlığını tekrar kontrol et
             if (!Directory.Exists(tempDirectory))
             {
                 try
-            {
+                {
                     Directory.CreateDirectory(tempDirectory);
                     var tempInfo = new DirectoryInfo(tempDirectory);
                     tempInfo.Attributes &= ~FileAttributes.ReadOnly;
@@ -144,35 +167,35 @@ namespace MebToplantiTakip.Services
             string zipFileName = $"Meeting_{meetingId}_Documents_{DateTime.Now:yyyyMMddHHmmss}.zip";
             string zipFilePath = Path.Combine(tempDirectory, zipFileName);
             
-            try
+                        try
             {
                 using (var zipArchive = ZipFile.Open(zipFilePath, ZipArchiveMode.Create))
                 {
                     foreach (var doc in documents)
                     {
-                    if (File.Exists(doc.FilePath))
-                    {
-                        zipArchive.CreateEntryFromFile(doc.FilePath, doc.FileName);
+                        if (File.Exists(doc.FilePath))
+                        {
+                            zipArchive.CreateEntryFromFile(doc.FilePath, doc.FileName);
+                        }
                     }
                 }
-            }
 
-            var zipBytes = await File.ReadAllBytesAsync(zipFilePath);
-            
-            // Zip dosyasını temizle
-            try 
+                var zipBytes = await File.ReadAllBytesAsync(zipFilePath);
+                
+                // Zip dosyasını temizle
+                try 
                 {
                     if (File.Exists(zipFilePath))
-            {
-                File.Delete(zipFilePath);
+                    {
+                        File.Delete(zipFilePath);
                     }
-            }
-            catch
-            {
-                // Silme hatası kritik değil, devam et
-            }
+                }
+                catch
+                {
+                    // Silme hatası kritik değil, devam et
+                }
 
-            return zipBytes;
+                return zipBytes;
             }
             catch (Exception ex)
             {
