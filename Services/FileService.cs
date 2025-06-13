@@ -87,10 +87,14 @@ namespace MebToplantiTakip.Services
                         await file.CopyToAsync(stream);
                     }
 
+                    // Dosya yolunu normalize et - relatif yol kullan
+                    var relativePath = Path.Combine("wwwroot", "Uploads", uniqueFileName);
+                    var fullPath = Path.Combine(Directory.GetCurrentDirectory(), relativePath);
+
                     var meetingDocument = new MeetingDocument
                     {
                         FileName = file.FileName,
-                        FilePath = filePath,
+                        FilePath = fullPath, // Tam yolu kaydet ama normalize edilmiş
                         MeetingId = meetingId,
                         DownloadUrl = "" // Boş string olarak başlat
                     };

@@ -81,10 +81,45 @@ namespace MebToplantiTakip.Controllers
                 if (document == null)
                     return NotFound($"ID {id} ile doküman veritabanında bulunamadı.");
 
-                if (!System.IO.File.Exists(document.FilePath))
-                    return NotFound($"Doküman veritabanında bulundu ancak dosya bulunamadı. Dosya yolu: {document.FilePath}");
+                // Dosya yolunu normalize et - hem tam yol hem de dosya adı ile dene
+                string actualFilePath = document.FilePath;
+                
+                // Eğer dosya bulunamazsa, sadece dosya adını kullanarak wwwroot/Uploads dizininde ara
+                if (!System.IO.File.Exists(actualFilePath))
+                {
+                    var fileName = Path.GetFileName(document.FilePath);
+                    var uploadsPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Uploads", fileName);
+                    
+                    if (System.IO.File.Exists(uploadsPath))
+                    {
+                        actualFilePath = uploadsPath;
+                    }
+                    else
+                    {
+                        // Eğer hala bulunamazsa, tüm Uploads dizininde dosya adına göre ara
+                        var uploadDirectory = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Uploads");
+                        if (Directory.Exists(uploadDirectory))
+                        {
+                            var files = Directory.GetFiles(uploadDirectory, "*.*", SearchOption.TopDirectoryOnly);
+                            var matchingFile = files.FirstOrDefault(f => Path.GetFileName(f).Equals(fileName, StringComparison.OrdinalIgnoreCase));
+                            
+                            if (matchingFile != null)
+                            {
+                                actualFilePath = matchingFile;
+                            }
+                            else
+                            {
+                                return NotFound($"Doküman veritabanında bulundu ancak dosya bulunamadı. Aranılan dosya: {fileName}, Dosya yolu: {document.FilePath}");
+                            }
+                        }
+                        else
+                        {
+                            return NotFound($"Uploads dizini bulunamadı. Dosya yolu: {document.FilePath}");
+                        }
+                    }
+                }
 
-                var fileBytes = await System.IO.File.ReadAllBytesAsync(document.FilePath);
+                var fileBytes = await System.IO.File.ReadAllBytesAsync(actualFilePath);
                 var contentType = GetContentType(document.FileName);
                 
                 return File(fileBytes, contentType, document.FileName);
