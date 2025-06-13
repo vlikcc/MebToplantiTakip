@@ -291,6 +291,14 @@ const MeetingDetail = () => {
                       <DocumentIcon />
                     </ListItemIcon>
                     <ListItemText primary={doc.fileName} />
+                    <IconButton
+                      color="primary"
+                      size="small"
+                      onClick={() => fileService.downloadFile(doc.id, doc.fileName)}
+                      title="İndir"
+                    >
+                      <DownloadIcon />
+                    </IconButton>
                   </ListItem>
                 ))}
               </List>

@@ -111,7 +111,7 @@ const DocumentList = () => {
     if (window.confirm('Bu dokümanı silmek istediğinize emin misiniz?')) {
       try {
         await fileService.deleteFile(documentId);
-        setDocuments(documents.filter(doc => doc.documentId !== documentId));
+        setDocuments(documents.filter(doc => doc.id !== documentId));
       } catch (error) {
         console.error('Doküman silinirken hata oluştu:', error);
       }
@@ -234,7 +234,7 @@ const DocumentList = () => {
                     </TableHead>
                     <TableBody>
                       {group.documents.map((doc) => (
-                        <TableRow key={doc.documentId}>
+                        <TableRow key={doc.id}>
                           <TableCell>
                             <Box display="flex" alignItems="center">
                               <DocumentIcon sx={{ mr: 1, color: 'primary.main' }} />
@@ -256,7 +256,7 @@ const DocumentList = () => {
                             <IconButton
                               color="primary"
                               size="small"
-                              onClick={() => handleDownload(doc.documentId, doc.fileName)}
+                              onClick={() => handleDownload(doc.id, doc.fileName)}
                               title="İndir"
                             >
                               <DownloadIcon />
@@ -264,7 +264,7 @@ const DocumentList = () => {
                             <IconButton
                               color="error"
                               size="small"
-                              onClick={() => handleDelete(doc.documentId)}
+                              onClick={() => handleDelete(doc.id)}
                               title="Sil"
                             >
                               <DeleteIcon />

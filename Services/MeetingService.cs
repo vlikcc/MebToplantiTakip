@@ -113,5 +113,17 @@ namespace MebToplantiTakip.Services
         {
             return await _context.MeetingDocuments.FindAsync(id);
         }
+
+        // Doküman silme
+        public async Task<bool> DeleteDocument(int documentId)
+        {
+            var document = await _context.MeetingDocuments.FindAsync(documentId);
+            if (document == null)
+                return false;
+
+            _context.MeetingDocuments.Remove(document);
+            await _context.SaveChangesAsync();
+            return true;
+        }
     }
 }

@@ -178,5 +178,30 @@ namespace MebToplantiTakip.Controllers
             var meeting = await meetingService.GetMeetingById(meetingId);
             return meeting != null ? Ok(meeting) : NotFound();
         }
+
+        [HttpDelete("delete-document/{documentId}")]
+        public async Task<IActionResult> DeleteDocument(int documentId)
+        {
+            try
+            {
+                var document = await meetingService.GetDocumentById(documentId);
+                if (document == null)
+                    return NotFound($"ID {documentId} ile doküman bulunamadı.");
+
+                // Fiziksel dosyayı sil
+                if (System.IO.File.Exists(document.FilePath))
+                {
+                    System.IO.File.Delete(document.FilePath);
+                }
+
+                // Veritabanından kayıt sil
+                var result = await meetingService.DeleteDocument(documentId);
+                return result ? NoContent() : NotFound();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, $"Doküman silinirken hata oluştu: {ex.Message}");
+            }
+        }
     }
 }

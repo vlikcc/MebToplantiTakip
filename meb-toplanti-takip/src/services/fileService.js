@@ -7,7 +7,7 @@ const fileService = {
   // Tek bir dokümanı indir
   downloadFile: async (documentId, fileName) => {
     try {
-      const response = await axios.get(`${API_URL}/Files/Download/${documentId}`, {
+      const response = await axios.get(`${API_URL}/meetings/download-document/${documentId}`, {
         responseType: 'blob',
       });
       
@@ -19,6 +19,7 @@ const fileService = {
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
       
       return true;
     } catch (error) {
@@ -30,7 +31,7 @@ const fileService = {
   // Bir toplantıya ait tüm dokümanları indir
   downloadFiles: async (meetingId) => {
     try {
-      const response = await axios.get(`${API_URL}/Files/DownloadAll/${meetingId}`, {
+      const response = await axios.get(`${API_URL}/meetings/download-documents/${meetingId}`, {
         responseType: 'blob',
       });
       
@@ -42,6 +43,7 @@ const fileService = {
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
       
       return true;
     } catch (error) {
@@ -50,10 +52,10 @@ const fileService = {
     }
   },
   
-  // Doküman sil
+  // Doküman sil - Bu endpoint backend'de yok, eklenmesi gerekiyor
   deleteFile: async (documentId) => {
     try {
-      const response = await axios.delete(`${API_URL}/Files/${documentId}`);
+      const response = await axios.delete(`${API_URL}/meetings/delete-document/${documentId}`);
       return response.data;
     } catch (error) {
       console.error('Dosya silme hatası:', error);
@@ -65,13 +67,12 @@ const fileService = {
   uploadFiles: async (meetingId, files) => {
     try {
       const formData = new FormData();
-      formData.append('meetingId', meetingId);
       
       for (let i = 0; i < files.length; i++) {
         formData.append('files', files[i]);
       }
       
-      const response = await axios.post(`${API_URL}/Files/Upload`, formData, {
+      const response = await axios.post(`${API_URL}/meetings/upload-document/${meetingId}`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
