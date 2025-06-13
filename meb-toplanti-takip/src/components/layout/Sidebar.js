@@ -10,6 +10,8 @@ import {
   Divider,
   Box,
   Typography,
+  useTheme,
+  useMediaQuery,
 } from '@mui/material';
 import {
   Dashboard as DashboardIcon,
@@ -26,7 +28,7 @@ const drawerWidth = 240;
 
 const menuItems = [
   { text: 'Dashboard', icon: <DashboardIcon />, path: '/' },
-  { text: 'Toplantılar', icon: <EventIcon />, path: '/meetings' }, // Sondaki eğik çizgiyi kaldırdım
+  { text: 'Toplantılar', icon: <EventIcon />, path: '/meetings' },
   { text: 'Kullanıcılar', icon: <PeopleIcon />, path: '/users' },
   { text: 'Katılımcılar', icon: <PeopleIcon />, path: '/attendees' },
   { text: 'Lokasyonlar', icon: <LocationIcon />, path: '/locations' },
@@ -36,21 +38,12 @@ const menuItems = [
   { text: 'Ayarlar', icon: <SettingsIcon />, path: '/settings' },
 ];
 
-const Sidebar = ({ open, onClose }) => {
+const Sidebar = ({ open, onClose, variant = 'permanent', isMobile = false }) => {
   const location = useLocation();
+  const theme = useTheme();
 
-  return (
-    <Drawer
-      variant="permanent"
-      sx={{
-        width: drawerWidth,
-        flexShrink: 0,
-        '& .MuiDrawer-paper': {
-          width: drawerWidth,
-          boxSizing: 'border-box',
-        },
-      }}
-    >
+  const drawerContent = (
+    <>
       <Box sx={{ p: 2 }}>
         <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
           MEB Toplantı Takip
@@ -64,6 +57,7 @@ const Sidebar = ({ open, onClose }) => {
               component={Link}
               to={item.path}
               selected={location.pathname === item.path}
+              onClick={isMobile ? onClose : undefined}
               sx={{
                 '&.Mui-selected': {
                   backgroundColor: 'primary.light',
@@ -79,7 +73,33 @@ const Sidebar = ({ open, onClose }) => {
           </ListItem>
         ))}
       </List>
-    </Drawer>
+    </>
+  );
+
+  return (
+    <Box
+      component="nav"
+      sx={{ width: { sm: drawerWidth }, flexShrink: { sm: 0 } }}
+    >
+      <Drawer
+        variant={variant}
+        open={variant === 'temporary' ? open : true}
+        onClose={onClose}
+        ModalProps={{
+          keepMounted: true, // Better open performance on mobile.
+        }}
+        sx={{
+          display: { xs: variant === 'temporary' ? 'block' : 'none', sm: 'block' },
+          '& .MuiDrawer-paper': {
+            boxSizing: 'border-box',
+            width: drawerWidth,
+            borderRight: `1px solid ${theme.palette.divider}`,
+          },
+        }}
+      >
+        {drawerContent}
+      </Drawer>
+    </Box>
   );
 };
 

@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
-import { Box, Toolbar } from '@mui/material';
-import { Outlet } from 'react-router-dom'; // Outlet'i import edin
+import { Box, Toolbar, useMediaQuery, useTheme } from '@mui/material';
+import { Outlet } from 'react-router-dom';
 import Header from './Header';
 import Sidebar from './Sidebar';
 
-const Layout = () => { // children prop'unu kaldırın
+const Layout = () => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const handleDrawerToggle = () => {
@@ -14,18 +16,27 @@ const Layout = () => { // children prop'unu kaldırın
   return (
     <Box sx={{ display: 'flex' }}>
       <Header onMenuClick={handleDrawerToggle} />
-      <Sidebar open={mobileOpen} onClose={handleDrawerToggle} />
+      <Sidebar 
+        open={mobileOpen} 
+        onClose={handleDrawerToggle}
+        variant={isMobile ? 'temporary' : 'permanent'}
+        isMobile={isMobile}
+      />
+      
       <Box
         component="main"
         sx={{
           flexGrow: 1,
           p: 3,
-          width: { sm: `calc(100% - 240px)` },
-          ml: { sm: '240px' },
+          width: { 
+            sm: isMobile ? '100%' : 'calc(100% - 240px)' 
+          },
+          minHeight: '100vh',
+          backgroundColor: 'background.default',
         }}
       >
         <Toolbar />
-        <Outlet /> {/* children yerine Outlet kullanın */}
+        <Outlet />
       </Box>
     </Box>
   );
