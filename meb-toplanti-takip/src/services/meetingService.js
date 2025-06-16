@@ -76,9 +76,36 @@ const meetingService = {
     }
   },
   
-  createMeeting: async (meetingData) => {
+  createMeeting: async (meetingData, files = []) => {
     try {
-      const response = await api.post('/Meetings', meetingData);
+      // FormData oluştur - backend'in beklediği format
+      const formData = new FormData();
+      
+      // Meeting verilerini formData'ya ekle
+      formData.append('Title', meetingData.title);
+      formData.append('StartDate', meetingData.startDate);
+      formData.append('EndDate', meetingData.endDate);
+      formData.append('Allday', meetingData.allday);
+      formData.append('Color', meetingData.color);
+      
+      // LocationId gönder
+      if (meetingData.location && meetingData.location.locationId) {
+        formData.append('LocationId', meetingData.location.locationId.toString());
+      }
+      
+      // Dosyaları ekle
+      if (files && files.length > 0) {
+        files.forEach((file, index) => {
+          formData.append(`files`, file);
+        });
+      }
+      
+      // Backend'in doğru endpoint'ine istek gönder
+      const response = await api.post('/Meetings/AddMeeting', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
       return response.data;
     } catch (error) {
       console.error('Toplantı oluşturulurken hata:', error);

@@ -29,6 +29,13 @@ namespace MebToplantiTakip.Services
             if (meeting == null)
                 throw new ArgumentNullException(nameof(meeting), "Toplantı bilgileri boş olamaz.");
 
+            // LocationId varsa mevcut Location'ı bul
+            Location location = null;
+            if (meeting.LocationId.HasValue)
+            {
+                location = await _context.Locations.FindAsync(meeting.LocationId.Value);
+            }
+
             var createdMeeting = new Meeting
             {
                 Title = meeting.Title,
@@ -36,12 +43,7 @@ namespace MebToplantiTakip.Services
                 EndDate = meeting.EndDate,
                 Allday = meeting.Allday,
                 Color = meeting.Color,
-                Location = new Location
-                {
-                    Latitude = meeting.Location.Latitude,
-                    Longitude = meeting.Location.Longitude,
-                    LocationName = meeting.Location.LocationName
-                },
+                Location = location,
                 Documents = new List<MeetingDocument>()
             };
 

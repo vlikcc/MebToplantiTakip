@@ -10,8 +10,7 @@ namespace MebToplantiTakip.Dtos
         public string EndDate { get; set; }
         public string Allday { get; set; }
         public string Color { get; set; }
-        public Location Location { get; set; }
-        public List<MeetingDocument> Documents { get; set; }
+        public int? LocationId { get; set; }  // Location objesi yerine sadece LocationId
 
     }
 }
