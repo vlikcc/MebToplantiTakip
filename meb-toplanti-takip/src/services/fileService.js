@@ -1,13 +1,10 @@
-import axios from 'axios';
-import { API_BASE_URL } from '../config';
-
-const API_URL = API_BASE_URL;
+import api from './api';
 
 const fileService = {
   // Tek bir dokümanı indir
   downloadFile: async (documentId, fileName) => {
     try {
-      const response = await axios.get(`${API_URL}/meetings/download-document/${documentId}`, {
+      const response = await api.get(`/meetings/download-document/${documentId}`, {
         responseType: 'blob',
       });
       
@@ -31,7 +28,7 @@ const fileService = {
   // Bir toplantıya ait tüm dokümanları indir
   downloadFiles: async (meetingId) => {
     try {
-      const response = await axios.get(`${API_URL}/meetings/download-documents/${meetingId}`, {
+      const response = await api.get(`/meetings/download-documents/${meetingId}`, {
         responseType: 'blob',
       });
       
@@ -55,7 +52,7 @@ const fileService = {
   // Doküman sil - Bu endpoint backend'de yok, eklenmesi gerekiyor
   deleteFile: async (documentId) => {
     try {
-      const response = await axios.delete(`${API_URL}/meetings/delete-document/${documentId}`);
+      const response = await api.delete(`/meetings/delete-document/${documentId}`);
       return response.data;
     } catch (error) {
       console.error('Dosya silme hatası:', error);
@@ -72,7 +69,7 @@ const fileService = {
         formData.append('files', files[i]);
       }
       
-      const response = await axios.post(`${API_URL}/meetings/upload-document/${meetingId}`, formData, {
+      const response = await api.post(`/meetings/upload-document/${meetingId}`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
