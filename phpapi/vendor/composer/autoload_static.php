@@ -17,6 +17,7 @@ class ComposerStaticInitfa37c38dbc75cb164ac115132c9c5ecc
         '7b11c4dc42b3b3023073cb14e519683c' => __DIR__ . '/..' . '/ralouphie/getallheaders/src/getallheaders.php',
         '2df68f9e79c919e2d88506611769ed2e' => __DIR__ . '/..' . '/respect/stringifier/src/stringify.php',
         '320cde22f66dd4f5d3fd621d3e88b98f' => __DIR__ . '/..' . '/symfony/polyfill-ctype/bootstrap.php',
+        'b33e3d135e5d9e47d845c576147bda89' => __DIR__ . '/..' . '/php-di/php-di/src/functions.php',
     );
 
     public static $prefixLengthsPsr4 = array (
@@ -49,8 +50,13 @@ class ComposerStaticInitfa37c38dbc75cb164ac115132c9c5ecc
             'Psr\\Clock\\' => 10,
             'PhpOption\\' => 10,
         ),
+        'L' => 
+        array (
+            'Laravel\\SerializableClosure\\' => 28,
+        ),
         'I' => 
         array (
+            'Invoker\\' => 8,
             'Illuminate\\Support\\' => 19,
             'Illuminate\\Database\\' => 20,
             'Illuminate\\Contracts\\' => 21,
@@ -74,6 +80,7 @@ class ComposerStaticInitfa37c38dbc75cb164ac115132c9c5ecc
         array (
             'Dotenv\\' => 7,
             'Doctrine\\Inflector\\' => 19,
+            'DI\\' => 3,
             'DASPRiD\\Enum\\' => 13,
         ),
         'C' => 
@@ -163,6 +170,14 @@ class ComposerStaticInitfa37c38dbc75cb164ac115132c9c5ecc
         array (
             0 => __DIR__ . '/..' . '/phpoption/phpoption/src/PhpOption',
         ),
+        'Laravel\\SerializableClosure\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/laravel/serializable-closure/src',
+        ),
+        'Invoker\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/php-di/invoker/src',
+        ),
         'Illuminate\\Support\\' => 
         array (
             0 => __DIR__ . '/..' . '/illuminate/support',
@@ -209,6 +224,10 @@ class ComposerStaticInitfa37c38dbc75cb164ac115132c9c5ecc
         'Doctrine\\Inflector\\' => 
         array (
             0 => __DIR__ . '/..' . '/doctrine/inflector/lib/Doctrine/Inflector',
+        ),
+        'DI\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/php-di/php-di/src',
         ),
         'DASPRiD\\Enum\\' => 
         array (
